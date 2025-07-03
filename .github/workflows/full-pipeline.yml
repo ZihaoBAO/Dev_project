@@ -1,0 +1,58 @@
+name: Full CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev, staging, main]
+
+jobs:
+  test:
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: |
+          pip install -r requirements.txt
+          pip install pytest
+          pytest tests/
+
+  build-and-push:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python & install MLflow
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: pip install mlflow==2.22.0
+
+      - name: Download model from DagsHub
+        env:
+          MLFLOW_TRACKING_URI: https://dagshub.com/Marw1BS/dvc.mlflow
+        run: |
+          mkdir -p models/random_forest_model
+          mlflow artifacts download \
+            --run-id 920f98cd99cc46909114a50fa7b360f4 \
+            --artifact-path model.joblib \
+            --dst-path models/random_forest_model
+
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t mrwnbnslm/dv2:latest .
+          docker push mrwnbnslm/dv2:latest
