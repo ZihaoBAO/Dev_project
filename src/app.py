@@ -7,7 +7,7 @@ app = FastAPI()
 
 # Chargement du modèle
 try:
-    model = joblib.load("models/random_forest_model/model.joblib")
+    model = joblib.load("models/random_forest_model/random_forest_model.joblib")
     print("✅ Modèle chargé avec succès")
 except Exception as e:
     model = None

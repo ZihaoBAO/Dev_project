@@ -30,6 +30,7 @@ model_1, acc_1 = train_model(n_estimators=20, max_depth=5)
 print("\nTraining Model 2...")
 model_2, acc_2 = train_model(n_estimators=100, max_depth=10)
 
+import joblib
 import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
@@ -64,7 +65,10 @@ def train_and_log_model(n_estimators, max_depth):
         mlflow.log_param("max_depth", max_depth)
         mlflow.log_metric("accuracy", accuracy)
         # mlflow.sklearn.log_model(model, "random_forest_model_2")
-
+        # 先本地保存模型文件
+        joblib.dump(model, "random_forest_model.joblib")
+        # 以普通文件形式上传
+        mlflow.log_artifact("random_forest_model.joblib")
         print(f"Logged RandomForest model with n_estimators={n_estimators}, max_depth={max_depth}, accuracy={accuracy:.4f}")
 
 # Train and log Model 1
