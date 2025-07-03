@@ -24,11 +24,11 @@ jobs:
 
       - name: Download model artifact from DagsHub
         env:
-          MLFLOW_TRACKING_URI: https://dagshub.com/Marw1BS/dvc.mlflow
+          MLFLOW_TRACKING_URI: https://dagshub.com/ZihaoBAO/Dev_project.mlflow
         run: |
           mkdir -p models/random_forest_model
           mlflow artifacts download \
-            --run-id 920f98cd99cc46909114a50fa7b360f4 \
+            --run-id 954c46daf0174aa09be72e9e5a0d4c6e \
             --artifact-path model.joblib \
             --dst-path models/random_forest_model
 
@@ -39,7 +39,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t mrwnbnslm/dv2:latest .
+        run: docker build -t zihaobao/dev_project:latest .
 
       - name: Push to DockerHub
-        run: docker push mrwnbnslm/dv2:latest
+        run: docker push zihaobao/dev_project:latest

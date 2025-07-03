@@ -39,7 +39,7 @@ from sklearn.datasets import load_digits
 
 # get this code from dagshub
 import dagshub
-dagshub.init(repo_owner='arthur-gtgn', repo_name='mlflow-with-daghub', mlflow=True)
+dagshub.init(repo_owner='ZihaoBAO', repo_name='Dev_project', mlflow=True)
 
 data = load_digits()
 X_train, X_test, y_train, y_test = train_test_split(data.data, data.target, test_size=0.2, random_state=42)
@@ -63,7 +63,7 @@ def train_and_log_model(n_estimators, max_depth):
         mlflow.log_param("n_estimators", n_estimators)
         mlflow.log_param("max_depth", max_depth)
         mlflow.log_metric("accuracy", accuracy)
-        mlflow.sklearn.log_model(model, "random_forest_model_2")
+        # mlflow.sklearn.log_model(model, "random_forest_model_2")
 
         print(f"Logged RandomForest model with n_estimators={n_estimators}, max_depth={max_depth}, accuracy={accuracy:.4f}")
 
