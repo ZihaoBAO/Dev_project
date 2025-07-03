@@ -43,7 +43,7 @@ jobs:
           mkdir -p models/random_forest_model
           mlflow artifacts download \
             --run-id 8a7d126af8294455bb7d39b74515ef2f \
-            --artifact-path model.joblib \
+            --artifact-path random_forest_model.joblib \
             --dst-path models/random_forest_model
 
       - name: Docker login
