@@ -3,7 +3,7 @@ import time
 
 # configure test URL (update after deployment)
 BASE_URL = "http://localhost:8000"  # local test
-# BASE_URL = "https://your-app-url.com"  # production environment test
+# BASE_URL = "https://subtle-gabriellia-zihaobao-95b9bb8c.koyeb.app"  # production environment test
 
 def test_health_check():
     """end to end test: health check"""
