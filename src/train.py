@@ -65,9 +65,9 @@ def train_and_log_model(n_estimators, max_depth):
         mlflow.log_param("max_depth", max_depth)
         mlflow.log_metric("accuracy", accuracy)
         # mlflow.sklearn.log_model(model, "random_forest_model_2")
-        # 先本地保存模型文件
+        # save model file locally
         joblib.dump(model, "random_forest_model.joblib")
-        # 以普通文件形式上传
+        # upload model file as a normal file
         mlflow.log_artifact("random_forest_model.joblib")
         print(f"Logged RandomForest model with n_estimators={n_estimators}, max_depth={max_depth}, accuracy={accuracy:.4f}")
 

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML model prediction service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .predict-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 ML model prediction service</h1>
+        <p class="subtitle">Based on random forest digit recognition model</p>
+        
+        <div id="status" class="status offline">
+            Checking service status...
+        </div>
+
+        <button id="predictBtn" class="predict-btn" onclick="makePrediction()">
+            Start prediction
+        </button>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Processing prediction request...</p>
+        </div>
+
+        <div id="result" class="result">
+            <h3>Prediction result</h3>
+            <div class="result-item">
+                <span class="result-label">Model prediction:</span>
+                <span id="prediction" class="result-value">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Actual value:</span>
+                <span id="actual" class="result-value">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Prediction accuracy:</span>
+                <span id="accuracy" class="result-value">-</span>
+            </div>
+        </div>
+
+        <div id="error" class="error">
+            <strong>Error:</strong> <span id="errorMessage"></span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // check service status
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                if (response.ok) {
+                    statusDiv.className = 'status online';
+                    statusDiv.textContent = '✅ Service online';
+                } else {
+                    statusDiv.className = 'status offline';
+                    statusDiv.textContent = '❌ Service offline';
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status offline';
+                statusDiv.textContent = '❌ Cannot connect to service';
+            }
+        }
+
+        // make prediction
+        async function makePrediction() {
+            const predictBtn = document.getElementById('predictBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+
+            // reset status
+            predictBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            error.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_BASE}/predict`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // show result
+                    document.getElementById('prediction').textContent = data.prediction;
+                    document.getElementById('actual').textContent = data.actual;
+                    
+                    const isCorrect = data.prediction === data.actual;
+                    document.getElementById('accuracy').textContent = isCorrect ? '✅ Correct' : '❌ Incorrect';
+                    document.getElementById('accuracy').style.color = isCorrect ? '#28a745' : '#dc3545';
+                    
+                    result.classList.add('show');
+                } else {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = error.message;
+                error.classList.add('show');
+            } finally {
+                predictBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+
+        // check status when page loads
+        window.onload = function() {
+            checkStatus();
+        };
+    </script>
+</body>
+</html> 

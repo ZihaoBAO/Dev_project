@@ -1,9 +1,16 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import joblib
 import pandas as pd
 from sklearn.datasets import load_digits
+import os
 
 app = FastAPI()
+
+# mount static files directory
+if os.path.exists("src/static"):
+    app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 # Chargement du modèle
 try:
@@ -17,6 +24,11 @@ except Exception as e:
 @app.get("/")
 def root():
     return {"message": "API UP ✅"}
+
+# Route pour servir la page d'accueil
+@app.get("/ui")
+def serve_ui():
+    return FileResponse("src/static/index.html")
 
 # Route de prédiction
 @app.get("/predict")

@@ -15,6 +15,9 @@ RUN pip install dvc[http]
 # Copier tout le projet
 COPY . .
 
+# Créer le répertoire static s'il n'existe pas
+RUN mkdir -p src/static
+
 # Récupérer les données suivies par DVC
 RUN dvc pull -f || echo "⚠️ DVC pull failed (peut-être en local seulement)"
 
