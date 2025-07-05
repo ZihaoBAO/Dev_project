@@ -42,11 +42,11 @@ git checkout main
 # 安装依赖
 pip install -r requirements.txt
 
-# 运行测试
-pytest tests/
-
 # 启动应用
 uvicorn src.app:app --host 0.0.0.0 --port 8000
+
+# 运行测试
+pytest tests/
 
 # 访问前端界面
 # http://localhost:8000/ui

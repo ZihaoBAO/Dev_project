@@ -39,7 +39,8 @@ def test_prediction_format():
         # test if the prediction result format is correct
         assert isinstance(prediction, np.ndarray)
         assert len(prediction) == 1
-        assert isinstance(prediction[0], (int, float))
+        # Check if the prediction value is numeric (int or float)
+        assert np.issubdtype(prediction.dtype, np.number)
         print("✅ prediction format test passed")
     except Exception as e:
         print(f"❌ prediction format test failed: {e}")
